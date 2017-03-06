@@ -7,6 +7,7 @@ import javax.xml.ws.Endpoint;
 import interfaces.UserWebService;
 import jms.JmsAdminManager;
 import jms.JmsManager;
+import listeners.SubscribeListener;
 
 @WebService
 public class UserWebServer implements UserWebService {
@@ -26,7 +27,7 @@ public class UserWebServer implements UserWebService {
 	}
 
 	@Override
-	public void Subscribe(String topic, MessageListener list) {
+	public void Subscribe(String topic, SubscribeListener list) {
 		// TODO Auto-generated method stub
 		manager.Subscribe(topic, list);
 		
@@ -45,7 +46,7 @@ public class UserWebServer implements UserWebService {
 	}
 	
 	public static void main(String[] args) {
-		Endpoint.publish("http://localhost:9999/user",  new UserWebServer());
+		Endpoint.publish("http://localhost:9998/user",  new UserWebServer());
 	}
 
 
