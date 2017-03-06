@@ -22,15 +22,18 @@ public class JmsAdminManager implements JmsAdminInterface {
 			e.printStackTrace();
 		}
 	}
-
+	
+	
 	@Override
 	public void CreateQueue(String queue) {
 		// TODO Auto-generated method stub
 	    Boolean isQueue = Boolean.TRUE;
 	    try {
-			if (!admin.addDestination(queue, isQueue)) {
-			    System.err.println("Failed to create queue " + queue);
-			}
+	    	if( !admin.destinationExists(queue)){
+		    	if (!admin.addDestination(queue, isQueue)) {
+				    System.err.println("Failed to create queue " + queue);
+				}
+	    	}
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -57,9 +60,11 @@ public class JmsAdminManager implements JmsAdminInterface {
 		// TODO Auto-generated method stub
 	    Boolean isQueue = Boolean.FALSE;
 	    try {
-			if (!admin.addDestination(topic, isQueue)) {
-			    System.err.println("Failed to create topic " + topic);
-			}
+	    	if( !admin.destinationExists(topic)){
+				if (!admin.addDestination(topic, isQueue)) {
+				    System.err.println("Failed to create topic " + topic);
+				}
+	    	}
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

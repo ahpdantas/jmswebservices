@@ -77,7 +77,7 @@ public class JmsManager implements JmsManagerInterface{
 	}
 
 	@Override
-	public void Publish(String msg, String topic) {
+	public void Publish(String topic, String msg) {
 		// TODO Auto-generated method stub
 		try{
 			TopicConnection conn = tFactory.createTopicConnection();
