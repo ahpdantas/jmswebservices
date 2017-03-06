@@ -7,7 +7,7 @@ import interfaces.AdminWebService;
 import jms.JmsAdminManager;
 import jms.JmsManager;
 
-@WebService
+@WebService(endpointInterface = "interfaces.AdminWebService")
 public class AdminWebServer implements AdminWebService {
 	private JmsAdminManager admin = new JmsAdminManager();
 	
