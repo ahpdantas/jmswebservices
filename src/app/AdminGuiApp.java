@@ -133,7 +133,6 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
 		menuBar.add(menu);
 		return menuBar;
 		
-		
 	}
 
     
@@ -155,7 +154,7 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
         }
 
         //Create and set up the window.
-        JFrame frame = new JFrame("Adminstrator");
+        JFrame frame = new JFrame("Adminstrator Application");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Add content to the window.
