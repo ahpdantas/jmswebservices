@@ -2,8 +2,9 @@ package app;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Iterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -17,20 +18,29 @@ import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
 
-public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeModelListener, MouseListener{
+import interfaces.AdminWebService;
+import listeners.DeleteQueueListener;
+import listeners.DeleteTopicListener;
+import listeners.ExitListener;
+import listeners.NewQueueListener;
+import listeners.NewTopicListener;
+import listeners.UpdateListener;
+
+public class AdminGuiApp extends JPanel {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private JTree tree;
 	private DefaultMutableTreeNode top;
+	public AdminWebService admin;
+	
 	
 	//Optionally play with line styles.  Possible values are
     //"Angled" (the default), "Horizontal", and "None".
@@ -41,10 +51,26 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
     private static boolean useSystemLookAndFeel = false;	
     
     
-    public AdminGuiApp(){
+    public AdminGuiApp(String adminWebServiceAddress){
+    	
+    	URL url;
+		try {
+			if( adminWebServiceAddress != null){
+				url = new URL(adminWebServiceAddress+"/admin?wsdl");
+			}
+			else{
+				url = new URL("http://127.0.0.1:9999/admin?wsdl");
+			}
+	    	QName qname = new QName("http://webservice/","AdminWebServerService");
+	    	Service ws = Service.create(url, qname);
+	    	admin = ws.getPort(AdminWebService.class);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
     	   
 		this.setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-		
 		
 		//Create the nodes.
 		top = new DefaultMutableTreeNode("OpenJMSServer");
@@ -52,13 +78,12 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
 		//Create a tree that allows one selection at a time.
 		tree = new JTree(top);
 		
+		updateJMSTree();
+		
 		tree.getSelectionModel().setSelectionMode
 		        (TreeSelectionModel.SINGLE_TREE_SELECTION);
 		
-		//Listen for when the selection changes.
-		tree.addTreeSelectionListener(this);
-		tree.addMouseListener(this);
-		
+	
 		if (playWithLineStyle) {
 		    System.out.println("line style = " + lineStyle);
 		    tree.putClientProperty("JTree.lineStyle", lineStyle);
@@ -78,12 +103,15 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
 		        //Add the split pane to this panel.
 		add(splitPane);
 		
-		JButton refresh = new JButton("Update");
-		//refresh.addActionListener(new RefreshListener(this));
-		add(refresh);
+		JButton update = new JButton("Update");
+		update.addActionListener(new UpdateListener(this));
+
+		add(update);
+		
+		createAndShowGUI();
     }
 	
-    private static JMenuBar createJMenuBar(){
+    private JMenuBar createJMenuBar(){
 		JMenuBar menuBar;
 		JMenu menu;
 		JMenuItem menuItem;
@@ -103,6 +131,7 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(
 		        KeyEvent.VK_E, ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription("Exit application");
+		menuItem.addActionListener(new ExitListener());
 		menu.add(menuItem);
 		
 		//Build second menu in the menu bar.
@@ -113,19 +142,23 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
 		JMenu queueMenu = new JMenu("Queue");
 
 		menuItem = new JMenuItem("Create");
+		menuItem.addActionListener(new NewQueueListener(this));
 		queueMenu.add(menuItem);
 		
 		menuItem = new JMenuItem("Remove");
+		menuItem.addActionListener(new DeleteQueueListener(this));
 		queueMenu.add(menuItem);
 		
 		menu.add(queueMenu);
 		
 		JMenu topicMenu = new JMenu("Topic");
-		
 		menuItem = new JMenuItem("Create");
+		menuItem.addActionListener(new NewTopicListener(this));
+		
 		topicMenu.add(menuItem);
 		
 		menuItem = new JMenuItem("Remove");
+		menuItem.addActionListener(new DeleteTopicListener(this));
 		topicMenu.add(menuItem);
 		
 		menu.add(topicMenu);
@@ -141,9 +174,8 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
      * this method should be invoked from the
      * event dispatch thread.
      */
-    private static void createAndShowGUI() {
-    	AdminGuiApp app = new AdminGuiApp();
-    	
+    private void createAndShowGUI() {
+     	
         if (useSystemLookAndFeel) {
             try {
                 UIManager.setLookAndFeel(
@@ -158,7 +190,7 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Add content to the window.
-        frame.add(app);
+        frame.add(this);
         frame.setJMenuBar(createJMenuBar());
         
 	    frame.setSize(100, 100);
@@ -166,75 +198,55 @@ public class AdminGuiApp extends JPanel implements TreeSelectionListener, TreeMo
         frame.pack();
         frame.setVisible(true);
     }
-	
-	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+    
+    public void updateJMSTree(){
+		System.out.println("Atualizando árvore");
+		top.removeAllChildren();
 
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+		DefaultMutableTreeNode queue = new DefaultMutableTreeNode("Queue");
+		DefaultMutableTreeNode topic = new DefaultMutableTreeNode("Topic");
 
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+		Iterator iterator = admin.GetAllQueues().iterator();
+		try {
+			while (iterator.hasNext()) {
+				String destination = (String) iterator.next();
+				int count = admin.getMessageCount(destination);
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode(destination + "(" + count +")");
+				queue.add(node);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+		iterator = admin.GetAllTopics().iterator();
+		try {
+			while (iterator.hasNext()) {
+				String destination = (String) iterator.next();
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode(destination);
+				topic.add(node);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+		top.add(queue);
+		top.add(topic);
 
-	@Override
-	public void valueChanged(TreeSelectionEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void treeNodesChanged(TreeModelEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void treeNodesInserted(TreeModelEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void treeNodesRemoved(TreeModelEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void treeStructureChanged(TreeModelEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+		DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+		model.reload(top);
+ 	   
+    }
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub	        
+		// TODO Auto-generated method stub
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-            createAndShowGUI();
-        }
-    });
-
+			public void run() {
+				if( args.length > 0 ){
+					AdminGuiApp app = new AdminGuiApp(args[0]);
+				} else {
+					AdminGuiApp app = new AdminGuiApp(null);
+				}
+			}
+		});
 	}
-
 }

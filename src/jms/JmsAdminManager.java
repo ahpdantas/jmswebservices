@@ -1,6 +1,13 @@
 package jms;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
+
+import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.Topic;
 
 import org.exolab.jms.administration.AdminConnectionFactory;
 import org.exolab.jms.administration.JmsAdminServerIfc;
@@ -75,7 +82,6 @@ public class JmsAdminManager implements JmsAdminInterface {
 	@Override
 	public void RemoveTopic(String topic) {
 		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
 	    try {
 			if (!admin.removeDestination(topic)) {
 			   System.err.println("Failed to remove destination " + topic);
@@ -84,8 +90,11 @@ public class JmsAdminManager implements JmsAdminInterface {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	    
 	}
 
+	
+	
 	@Override
 	public int getMessageCount(String queue) {
 		// TODO Auto-generated method stub
@@ -98,6 +107,63 @@ public class JmsAdminManager implements JmsAdminInterface {
 		}
 		
 		return count;
+	}
+
+	public Vector GetAllDestinations() {
+		Vector destinations = null;
+		try{
+			destinations = admin.getAllDestinations();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return destinations;
+	}
+
+
+	@Override
+	public ArrayList<String> GetAllQueues() {
+		// TODO Auto-generated method stub
+		ArrayList<String> queues = new ArrayList<String>();
+		Vector destinations = null;
+		try{
+		    destinations = admin.getAllDestinations();
+		    Iterator iterator = destinations.iterator();
+		    while (iterator.hasNext()) {
+		      Destination destination = (Destination) iterator.next();
+		      if (destination instanceof Queue) {
+		         Queue queue = (Queue) destination;
+		         queues.add(queue.getQueueName());
+		      }
+		    }
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return queues;
+	}
+
+
+	@Override
+	public ArrayList<String> GetAllTopics() {
+		// TODO Auto-generated method stub
+		ArrayList<String> topics = new ArrayList<String>();
+		Vector destinations = null;
+		try{
+		    destinations = admin.getAllDestinations();
+		    Iterator iterator = destinations.iterator();
+		    while (iterator.hasNext()) {
+		      Destination destination = (Destination) iterator.next();
+		      if (destination instanceof Topic) {
+		         Topic topic = (Topic) destination;
+		         topics.add(topic.getTopicName());
+		      }
+		    }
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return topics;
 	}
 
 }

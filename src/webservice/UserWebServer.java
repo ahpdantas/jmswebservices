@@ -9,7 +9,7 @@ import jms.JmsAdminManager;
 import jms.JmsManager;
 import listeners.SubscribeListener;
 
-@WebService
+@WebService(endpointInterface = "interfaces.UserWebService")
 public class UserWebServer implements UserWebService {
 	private JmsAdminManager admin = new JmsAdminManager();
 	private JmsManager manager = new JmsManager();
@@ -47,6 +47,7 @@ public class UserWebServer implements UserWebService {
 	
 	public static void main(String[] args) {
 		Endpoint.publish("http://localhost:9998/user",  new UserWebServer());
+		System.out.println("User Server running...");
 	}
 
 

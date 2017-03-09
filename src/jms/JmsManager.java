@@ -43,6 +43,9 @@ public class JmsManager implements JmsManagerInterface{
 			TextMessage message = session.createTextMessage();
 			message.setText(msg);
 			
+			System.out.println("User:"+queue);
+			System.out.println("Message:"+msg);
+			
 			sender.send(message);
 		
 			conn.close();
@@ -64,10 +67,12 @@ public class JmsManager implements JmsManagerInterface{
 			javax.jms.Queue dest = (javax.jms.Queue) context.lookup(queue);
 			QueueReceiver receiver = session.createReceiver(dest);
 			
-			TextMessage msg = (TextMessage)receiver.receive();
+			TextMessage msg = (TextMessage)receiver.receiveNoWait();
 			
 			conn.close();
-			return msg.getText();
+			if( msg != null ){
+				return msg.getText();
+			}
 		
 		}catch(Exception e){
 			e.printStackTrace();
@@ -79,6 +84,7 @@ public class JmsManager implements JmsManagerInterface{
 	@Override
 	public void Publish(String topic, String msg) {
 		// TODO Auto-generated method stub
+		System.out.println(topic +" "+ msg);
 		try{
 			TopicConnection conn = tFactory.createTopicConnection();
 			TopicSession session = conn.createTopicSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -104,6 +110,7 @@ public class JmsManager implements JmsManagerInterface{
 	@Override
 	public void Subscribe(String topic, MessageListener list) {
 		// TODO Auto-generated method stub
+		System.out.println(topic);
 		try{
 			TopicConnection conn = tFactory.createTopicConnection();
 			TopicSession session = conn.createTopicSession(false, Session.AUTO_ACKNOWLEDGE);
